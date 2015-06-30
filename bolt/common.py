@@ -37,16 +37,19 @@ def slicify(slc, dim):
             if type(item) != int:
                 raise ValueError("If a list, all members must be integers.")
 
-        return slc
+        return set(slc)
     
     elif isinstance(slc, ndarray):
         if slc.shape[0] > dim:
             raise ValueError("Boolean indexing array size much match dimension.")
         
         if slc.dtype == bool:
-            return argwhere(slc).flatten().tolist()
+            return set(argwhere(slc).flatten().tolist())
         else:
-            return slc.astype(int).tolist()
-    
+            return set(slc.astype(int).tolist())
+
+    elif isinstance(slc, set):
+        return slc
+
     else:
         raise ValueError("Type for slice %s not recongized" % type(slc))
