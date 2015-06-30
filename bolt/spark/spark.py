@@ -101,10 +101,16 @@ class BoltArraySpark(BoltArray):
         filtered = self._rdd.filter(lambda (k, v): key_check(k))
         mapped = filtered.map(lambda (k, v): (key_func(k), value_func(v)))
 
-        print(s)
+        print(index)
 
-        shape = tuple([d.sum() for d in index])
-
+        shape = []
+        for s in index:
+            if isinstance(s, slice):
+                shape.append(divide(s.stop - s.start, s.step) + mod(s.stop - s.start, s.step))
+            elif isinstance(s, list):
+                shape.append(len(s))
+        shape = tuple(shape)
+        print(shape)
         return self._constructor(mapped, shape=shape).__finalize__(self)
 
     """
