@@ -1,5 +1,5 @@
-from numpy import asarray, prod, mod, divide
-from bolt.common import slicify
+from numpy import asarray, unravel_index, ravel_multi_index, arange, prod, mod, divide, zeros, argwhere
+from bolt.common import tupleize
 from bolt.base import BoltArray
 
 
@@ -44,13 +44,18 @@ class BoltArraySpark(BoltArray):
         if len(index) < self.ndim:
             index += tuple([slice(0, None, None) for _ in range(self.ndim - len(index))])
 
-        index = tuple([slicify(s, d) for (s, d) in zip(index, self.shape)])
+        # this should turn a slice, int, bool array or list of ints into a bool array
+        def boolify(slc, dim):
+            bool_slice = zeros(dim, dtype=bool)
+            bool_slice[slc] = True
+            return bool_slice
+        index = tuple([boolify(s, d) for (s, d) in zip(index, self.shape)])
 
         key_slices = index[0:self.split]
         value_slices = index[self.split:]
 
         def key_check(key):
-            check = lambda kk, ss: ss.start <= kk < ss.stop and mod(kk - ss.start, ss.step) == 0
+            check = lambda kk, ss: kk in argwhere(ss)
             out = [check(k, s) for k, s in zip(key, key_slices)]
             return all(out)
 
@@ -63,8 +68,9 @@ class BoltArraySpark(BoltArray):
         filtered = self._rdd.filter(lambda (k, v): key_check(k))
         mapped = filtered.map(lambda (k, v): (key_func(k), value_func(v)))
 
-        shape = tuple([divide(s.stop - s.start, s.step) + mod(s.stop - s.start, s.step)
-                       for s in key_slices + value_slices])
+        print(s)
+
+        shape = tuple([d.sum() for d in index])
 
         return self._constructor(mapped, shape=shape).__finalize__(self)
 
