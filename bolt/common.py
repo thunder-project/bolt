@@ -53,3 +53,4 @@ def slicify(slc, dim):
 
     else:
         raise ValueError("Type for slice %s not recongized" % type(slc))
+
