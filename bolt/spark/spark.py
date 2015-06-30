@@ -1,5 +1,5 @@
 from numpy import asarray, unravel_index, ravel_multi_index, arange, prod, mod, divide, zeros, argwhere
-from bolt.common import tupleize
+from bolt.common import tupleize, slicify
 from bolt.base import BoltArray
 
 
@@ -27,7 +27,7 @@ class BoltArraySpark(BoltArray):
             raise ValueError("Split axis must be greater than 0, got %g" % split)
         if split > len(shape):
             raise ValueError("Split axis must not exceed number of axes %g, got %g" % (ndim, split))
-
+        
         key_shape = shape[:split]
         val_shape = shape[split:]
 
@@ -76,18 +76,19 @@ class BoltArraySpark(BoltArray):
         if len(index) < self.ndim:
             index += tuple([slice(0, None, None) for _ in range(self.ndim - len(index))])
 
-        # this should turn a slice, int, bool array or list of ints into a bool array
-        def boolify(slc, dim):
-            bool_slice = zeros(dim, dtype=bool)
-            bool_slice[slc] = True
-            return bool_slice
-        index = tuple([boolify(s, d) for (s, d) in zip(index, self.shape)])
+        # this should turn a slice for any index that was a slice or single number
+        # and a list of indecies to include if a list of ints or a boolean array
+        index = tuple([slicify(s, d) for (s, d) in zip(index, self.shape)])
 
         key_slices = index[0:self.split]
         value_slices = index[self.split:]
 
         def key_check(key):
-            check = lambda kk, ss: kk in argwhere(ss)
+            def check(kk, ss):
+                if isinstance(ss, slice):
+                    return ss.start <= kk < ss.stop and mod(kk - ss.start, ss.step) == 0
+                elif isinstance(ss, list):
+                    return kk in list
             out = [check(k, s) for k, s in zip(key, key_slices)]
             return all(out)
 
