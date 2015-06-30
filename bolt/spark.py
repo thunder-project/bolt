@@ -251,3 +251,13 @@ class BoltArraySpark(BoltArray):
     def display(self):
         for x in self._rdd.take(10):
             print x
+
+    def layout(self):
+        from bolt.display import DisplayArray, DisplayArrayJoint
+        if len(self.keys.shape) > 0 and len(self.values.shape):
+            DisplayArrayJoint().draw(self.keys.shape, self.values.shape)
+        else:
+            if len(self.keys.shape):
+                DisplayArray().draw(self.keys.shape, cmap='Purples')
+            else:
+                DisplayArray().draw(self.values.shape, cmap='Oranges')
