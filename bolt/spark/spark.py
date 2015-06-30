@@ -73,14 +73,14 @@ class BoltArraySpark(BoltArray):
         index = tuple([slicify(s, d) for (s, d) in zip(index, self.shape)])
 
         key_slices = index[0:self.split]
-        value_slices = index[self.split:]
-
+        value_slices = tuple([list(s) if isinstance(s,set) else s for s in index[self.split:]])
+        
         def key_check(key):
             def check(kk, ss):
                 if isinstance(ss, slice):
                     return ss.start <= kk < ss.stop and mod(kk - ss.start, ss.step) == 0
-                elif isinstance(ss, list):
-                    return kk in list
+                elif isinstance(ss, set):
+                    return kk in ss
             out = [check(k, s) for k, s in zip(key, key_slices)]
             return all(out)
 
@@ -93,8 +93,6 @@ class BoltArraySpark(BoltArray):
         filtered = self._rdd.filter(lambda (k, v): key_check(k))
         mapped = filtered.map(lambda (k, v): (key_func(k), value_func(v)))
 
-        print(index)
-
         shape = []
         for s in index:
             if isinstance(s, slice):
@@ -102,7 +100,6 @@ class BoltArraySpark(BoltArray):
             elif isinstance(s, list):
                 shape.append(len(s))
         shape = tuple(shape)
-        print(shape)
         return self._constructor(mapped, shape=shape).__finalize__(self)
 
     @property
