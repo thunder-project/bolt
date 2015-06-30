@@ -1,5 +1,5 @@
-from numpy import asarray, unravel_index, ravel_multi_index, arange, prod, mod, divide, zeros, argwhere
-from bolt.common import tupleize, slicify
+from numpy import asarray, unravel_index, arange, prod, mod, divide
+from bolt.common import slicify
 from bolt.base import BoltArray
 
 
