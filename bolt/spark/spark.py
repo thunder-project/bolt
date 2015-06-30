@@ -99,6 +99,8 @@ class BoltArraySpark(BoltArray):
                 shape.append(divide(s.stop - s.start, s.step) + mod(s.stop - s.start, s.step))
             elif isinstance(s, list):
                 shape.append(len(s))
+            elif isinstance(s, set):
+                shape.append(len(s))
         shape = tuple(shape)
         return self._constructor(mapped, shape=shape).__finalize__(self)
 
