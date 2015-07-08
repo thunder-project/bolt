@@ -15,4 +15,9 @@ Describe chunking
 
 Describe transposing / reshaping
 
-Describe stacking (useful alternate representation for some workflows)
+Stacking
+--------
+
+It is often more efficient to apply vectorized NumPy functions to a distributed set of medium-sized arrays, rather than to each row (a small array) independently. In many operations, such as element-wise multiplication, the ordering in which an operation is applied to an array's rows is not relevant to the correctness of the computation. Using this property, we can cheaply aggregate and stack (using `vstack`) all array records contained in a single Spark partition, returning a "stacked" representation of the original array. Operations performed on this object can leverage NumPy's single-core performance at the partition level, rather than at the usual `key,value` record level. 
+
+T
