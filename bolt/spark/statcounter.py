@@ -22,12 +22,15 @@
 import copy
 import sys
 from itertools import chain
+from numpy import zeros, sqrt, isnan, fmin, fmax, nansum, dstack
 
-from numpy import zeros, maximum, minimum, sqrt, isnan, fmin, fmax, shape, reshape, invert, amax, amin, nansum, dstack
-
+# python 3 compatibility
 if sys.version_info > (3,):
     long = int
-
+try:
+  basestring
+except NameError:
+  basestring = str
 
 class StatCounter(object):
 
