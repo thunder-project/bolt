@@ -207,7 +207,10 @@ class StatCounter(object):
         self.__isavail('nanmean')
         counts = self.nancount()
         mean = self.mu_n.squeeze()
-        mean[counts == 0] = float('NaN')
+        if counts.shape != ():
+            mean[counts == 0] = float('NaN')
+        elif counts == 0:
+            return float('NaN')
         return mean
 
 
@@ -221,7 +224,10 @@ class StatCounter(object):
         self.__isavail('nanmin')
         counts = self.nancount()
         min = self.minValue_n
-        min[counts == 0] = float('NaN')
+        if counts.shape != ():
+            min[counts == 0] = float('NaN')
+        elif counts == 0:
+            return float('NaN')
         return min
 
     @property
@@ -229,8 +235,10 @@ class StatCounter(object):
         self.__isavail('nanmax')
         counts = self.nancount()
         max = self.maxValue_n
-        if len(max) > 0
-        max[counts == 0] = float('NaN')
+        if counts.shape != ():
+            max[counts == 0] = float('NaN')
+        elif counts == 0:
+            return float('NaN')
         return max
 
     # Return the variance of the values.
