@@ -32,6 +32,7 @@ try:
 except NameError:
   basestring = str
 
+
 class StatCounter(object):
 
     REQUIRED_FOR = {
@@ -43,25 +44,25 @@ class StatCounter(object):
         'nansum': ('mu_n', 'n_n'),
         'nanvar': ('mu_n', 'm2_n', 'n_n'),
         'nanstd': ('mu_n', 'm2_n', 'n_n'),
-        'nanmin': ('minValue_n', 'n_n'),
-        'nanmax': ('maxValue_n', 'n_n'),
+        'nanmin': ('minvalue_n', 'n_n'),
+        'nanmax': ('maxvalue_n', 'n_n'),
         'all': ('n', 'mu', 'm2', 'n_n', 'mu_n', 'm2_n')
     }
 
     def __init__(self, values=(), stats='all'):
-        self.n = long(0)    # Running count of our values
-        self.mu = 0.0  # Running mean of our values
-        self.m2 = 0.0  # Running variance numerator (sum of (x - mean)^2)
-        self.n_n = None    # Running count of our values without NaNs
-        self.mu_n = None  # Running mean of our values without NaNs
-        self.m2_n = None  # Running variance numerator (sum of (x - mean)^2) without NaNs
-        self.maxValue_n = None
-        self.minValue_n = None
+        self.n = long(0)        # Running count of our values
+        self.mu = 0.0           # Running mean of our values
+        self.m2 = 0.0           # Running variance numerator (sum of (x - mean)^2)
+        self.n_n = None         # Running count of our values without NaNs
+        self.mu_n = None        # Running mean of our values without NaNs
+        self.m2_n = None        # Running variance numerator (sum of (x - mean)^2) without NaNs
+        self.maxvalue_n = None  # Running max value without NaNs
+        self.minvalue_n = None  # Running min value without NaNs
 
         if isinstance(stats, basestring):
             stats = [stats]
 
-        self.requiredAttrs = frozenset(chain().from_iterable([StatCounter.REQUIRED_FOR[stat] for stat in stats]))
+        self.required_attrs = frozenset(chain().from_iterable([StatCounter.REQUIRED_FOR[stat] for stat in stats]))
 
         for v in values:
             self.merge(v)
@@ -90,20 +91,20 @@ class StatCounter(object):
 
             if self.__requires('m2_n'):
                 # Since value can have nans - replace with zeros
-                tmpVal = value;
-                tmpVal[isnan(tmpVal)] = 0
-                self.m2_n += delta * (tmpVal - self.mu_n).squeeze()
-        if self.__requires('maxValue_n'):
-            self.maxValue_n = fmax(self.maxValue_n, value) if not self.maxValue_n is None else value
-        if self.__requires('minValue_n'):
-            self.minValue_n = fmin(self.minValue_n, value) if not self.minValue_n is None else value
+                temp = value
+                temp[isnan(temp)] = 0
+                self.m2_n += delta * (temp - self.mu_n).squeeze()
+        if self.__requires('maxvalue_n'):
+            self.maxvalue_n = fmax(self.maxvalue_n, value) if not self.maxvalue_n is None else value
+        if self.__requires('minvalue_n'):
+            self.minvalue_n = fmin(self.minvalue_n, value) if not self.minvalue_n is None else value
 
         return self
 
     # checks whether the passed attribute name is required to be updated in order to support the
     # statistics requested in self.requested
     def __requires(self, attrname):
-        return attrname in self.requiredAttrs
+        return attrname in self.required_attrs
 
     # merge another StatCounter into this one, adding up the statistics
     def combine(self, other):
@@ -114,11 +115,11 @@ class StatCounter(object):
             self.merge(copy.deepcopy(other))  # Avoid overwriting fields in a weird order
         else:
             # accumulator should only be updated if it's valid in both statcounters:
-            self.requiredAttrs = set(self.requiredAttrs).intersection(set(other.requiredAttrs))
+            self.required_attrs = set(self.required_attrs).intersection(set(other.required_attrs))
 
             if self.n == 0:
                 self.n = other.n
-                for attrname in ('mu', 'm2', 'n_n', 'mu_n', 'm2_n', 'maxValue_n', 'minValue_n'):
+                for attrname in ('mu', 'm2', 'n_n', 'mu_n', 'm2_n', 'maxvalue_n', 'minvalue_n'):
                     if self.__requires(attrname):
                         setattr(self, attrname, getattr(other, attrname))
 
@@ -150,14 +151,14 @@ class StatCounter(object):
                     self.mu_n[isnan(self.mu_n)] = 0
 
                     if self.__requires('m2_n'):
-                        tmpAdd = (delta * delta * self.n_n * other.n_n) / (self.n_n + other.n_n)
-                        tmpAdd[isnan(tmpAdd)] = 0
-                        self.m2_n += other.m2_n + tmpAdd.squeeze()
+                        temp = (delta * delta * self.n_n * other.n_n) / (self.n_n + other.n_n)
+                        temp[isnan(temp)] = 0
+                        self.m2_n += other.m2_n + temp.squeeze()
 
-                if self.__requires('maxValue_n'):
-                    self.maxValue_n = fmax(self.maxValue_n, other.maxValue_n)
-                if self.__requires('minValue_n'):
-                    self.minValue_n = fmin(self.minValue_n, other.minValue_n)
+                if self.__requires('maxvalue_n'):
+                    self.maxvalue_n = fmax(self.maxvalue_n, other.maxvalue_n)
+                if self.__requires('minvalue_n'):
+                    self.minvalue_n = fmin(self.minvalue_n, other.minvalue_n)
 
                 self.n_n += other.n_n
 
@@ -168,7 +169,7 @@ class StatCounter(object):
         return copy.deepcopy(self)
 
     def __isavail(self, attrname):
-        if not all(attr in self.requiredAttrs for attr in StatCounter.REQUIRED_FOR[attrname]):
+        if not all(attr in self.required_attrs for attr in StatCounter.REQUIRED_FOR[attrname]):
             raise ValueError("'%s' stat not available, must be requested at "
                              "StatCounter instantiation" % attrname)
 
@@ -223,7 +224,7 @@ class StatCounter(object):
     def nanmin(self):
         self.__isavail('nanmin')
         counts = self.nancount()
-        min = self.minValue_n
+        min = self.minvalue_n
         if counts.shape != ():
             min[counts == 0] = float('NaN')
         elif counts == 0:
@@ -234,7 +235,7 @@ class StatCounter(object):
     def nanmax(self):
         self.__isavail('nanmax')
         counts = self.nancount()
-        max = self.maxValue_n
+        max = self.maxvalue_n
         if counts.shape != ():
             max[counts == 0] = float('NaN')
         elif counts == 0:
@@ -258,5 +259,5 @@ class StatCounter(object):
     def __repr__(self):
         return ("(count: %s, mean: %s, std: %s, required: %s, nancount: %s, nanmean: %s, nanstd: %s, nanmin: %s, "
                 "nanmax: %s)" %
-                (self.count(), self.mean, self.std, str(tuple(self.requiredAttrs)), self.nancount(),
+                (self.count(), self.mean, self.std, str(tuple(self.required_attrs)), self.nancount(),
                  self.nanmean(), self.nanstd, self.nanmin, self.nanmax))

@@ -502,21 +502,6 @@ class BoltArraySpark(BoltArray):
         """
         return self._stat(axis, name='nanmin', keepdims=keepdims)
 
-    def nancount(self, axis=None, keepdims=False):
-        """
-        Return the count of non NaN values.
-
-        Parameters
-        ----------
-        axis : tuple or int, optional, default=None
-            Axis to compute statistic over, if None
-            will compute over all axes
-
-        keepdims : boolean, optional, default=False
-            Keep axis remaining after operation with size 1.
-        """
-        return self._stat(axis, name='nancount', keepdims=keepdims)
-
     def concatenate(self, arry, axis=0):
         """
         Join this array with another array.
