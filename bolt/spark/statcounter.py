@@ -20,45 +20,38 @@
 # This code is based on pyspark's statcounter.py and used under the ASF 2.0 license.
 
 import copy
-import math
+import sys
 from itertools import chain
 
 from numpy import zeros, maximum, minimum, sqrt, isnan, fmin, fmax, shape, reshape, invert, amax, amin, nansum, dstack
+
+if sys.version_info > (3,):
+    long = int
 
 
 class StatCounter(object):
 
     REQUIRED_FOR = {
-        'count': ('n',),
-        'mean': ('mu',),
-        'sum': ('mu','n'),
-        'min': ('minValue',),
-        'max': ('maxValue',),
-        'variance': ('mu', 'n', 'm2'),
-        'sampleVariance': ('mu', 'n', 'm2'),
-        'stdev': ('mu', 'n', 'm2'),
-        'sampleStdev': ('mu', 'n', 'm2'),
-        'nancount': ('n_n',),
-        'nanmean': ('mu_n',),
+        'mean': ('mu', 'n_n'),
+        'sum': ('mu', 'n_n'),
+        'variance': ('mu', 'm2', 'n_n'),
+        'stdev': ('mu', 'n', 'm2', 'n_n'),
+        'nanmean': ('mu_n', 'n_n'),
         'nansum': ('mu_n', 'n_n'),
-        'nanmin': ('minValue_n',),
-        'nanmax': ('maxValue_n',),
-        'nanvariance': ('mu_n', 'n_n', 'm2_n'),
-        'nansampleVariance': ('mu_n', 'n_n', 'm2_n'),
-        'nanstdev': ('mu_n', 'n_n', 'm2_n'),
-        'nansampleStdev': ('mu_n', 'n_n', 'm2_n'),
-        'all': ('n', 'mu', 'm2', 'minValue', 'maxValue', 'n_n', 'mu_n', 'm2_n', 'minValue_n', 'maxValue_n')
+        'nanvariance': ('mu_n', 'm2_n', 'n_n'),
+        'nanstdev': ('mu_n', 'm2_n', 'n_n'),
+        'nanmin': ('minValue_n', 'n_n'),
+        'nanmax': ('maxValue_n', 'n_n'),
+        'all': ('n', 'mu', 'm2', 'n_n', 'mu_n', 'm2_n')
     }
 
     def __init__(self, values=(), stats='all'):
-        self.n = 0L    # Running count of our values
+        self.n = long(0)    # Running count of our values
         self.mu = 0.0  # Running mean of our values
         self.m2 = 0.0  # Running variance numerator (sum of (x - mean)^2)
-        self.maxValue = None
-        self.minValue = None
-        self.n_n = None    # Running count of our values
-        self.mu_n = None  # Running mean of our values
-        self.m2_n = None  # Running variance numerator (sum of (x - mean)^2)
+        self.n_n = None    # Running count of our values without NaNs
+        self.mu_n = None  # Running mean of our values without NaNs
+        self.m2_n = None  # Running variance numerator (sum of (x - mean)^2) without NaNs
         self.maxValue_n = None
         self.minValue_n = None
 
@@ -78,27 +71,25 @@ class StatCounter(object):
             self.mu += delta / self.n
             if self.__requires('m2'):
                 self.m2 += delta * (value - self.mu)
-        if self.__requires('maxValue'):
-            self.maxValue = maximum(self.maxValue, value) if not self.maxValue is None else value
-        if self.__requires('minValue'):
-            self.minValue = minimum(self.minValue, value) if not self.minValue is None else value
 
         if self.n_n is None:
-            #Create the initial counter and set it to zeros
+            # Create the initial counter and set it to zeros
             self.n_n = zeros(value.shape)
             self.mu_n = zeros(value.shape)
             self.m2_n = zeros(value.shape)
 
         self.n_n += ~isnan(value)
         if self.__requires('mu_n'):
-            delta = value - self.mu_n
-            delta[isnan(value)] = 0
-            self.mu_n = nansum(dstack((self.mu_n, (delta / self.n_n))),axis=2)
+            delta = (value - self.mu_n).squeeze()
+            if nansum(isnan(value)):
+                delta[isnan(value)] = 0
+            self.mu_n = nansum(dstack((self.mu_n, (delta / self.n_n))), axis=2)
+
             if self.__requires('m2_n'):
-                #Since value can have nans - replace with zeros
+                # Since value can have nans - replace with zeros
                 tmpVal = value;
                 tmpVal[isnan(tmpVal)] = 0
-                self.m2_n += delta * (tmpVal - self.mu_n)
+                self.m2_n += delta * (tmpVal - self.mu_n).squeeze()
         if self.__requires('maxValue_n'):
             self.maxValue_n = fmax(self.maxValue_n, value) if not self.maxValue_n is None else value
         if self.__requires('minValue_n'):
@@ -124,11 +115,16 @@ class StatCounter(object):
 
             if self.n == 0:
                 self.n = other.n
-                for attrname in ('mu', 'm2', 'maxValue', 'minValue', 'n_n', 'mu_n', 'm2_n', 'maxValue_n', 'minValue_n'):
+                for attrname in ('mu', 'm2', 'n_n', 'mu_n', 'm2_n', 'maxValue_n', 'minValue_n'):
                     if self.__requires(attrname):
                         setattr(self, attrname, getattr(other, attrname))
 
             elif other.n != 0:
+                if self.n_n is None:
+                    # Create the initial counter and set it to zeros
+                    self.n_n = zeros(other.shape)
+                    self.mu_n = zeros(other.shape)
+                    self.m2_n = zeros(other.shape)
                 if self.__requires('mu'):
                     delta = other.mu - self.mu
                     if other.n * 10 < self.n:
@@ -141,11 +137,6 @@ class StatCounter(object):
                     if self.__requires('m2'):
                         self.m2 += other.m2 + (delta * delta * self.n * other.n) / (self.n + other.n)
 
-                if self.__requires('maxValue'):
-                    self.maxValue = maximum(self.maxValue, other.maxValue)
-                if self.__requires('minValue'):
-                    self.minValue = minimum(self.minValue, other.minValue)
-
                 self.n += other.n
 
                 if self.__requires('mu_n'):
@@ -155,11 +146,10 @@ class StatCounter(object):
                     #Set areas with no data to zero
                     self.mu_n[isnan(self.mu_n)] = 0
 
-
                     if self.__requires('m2_n'):
                         tmpAdd = (delta * delta * self.n_n * other.n_n) / (self.n_n + other.n_n)
                         tmpAdd[isnan(tmpAdd)] = 0
-                        self.m2_n += other.m2_n + tmpAdd
+                        self.m2_n += other.m2_n + tmpAdd.squeeze()
 
                 if self.__requires('maxValue_n'):
                     self.maxValue_n = fmax(self.maxValue_n, other.maxValue_n)
@@ -168,22 +158,18 @@ class StatCounter(object):
 
                 self.n_n += other.n_n
 
-
-
         return self
 
     # Clone this StatCounter
     def copy(self):
         return copy.deepcopy(self)
 
-
     def __isavail(self, attrname):
         if not all(attr in self.requiredAttrs for attr in StatCounter.REQUIRED_FOR[attrname]):
             raise ValueError("'%s' stat not available, must be requested at "
                              "StatCounter instantiation" % attrname)
-    @property
+
     def count(self):
-        self.__isavail('count')
         return self.n
 
     @property
@@ -195,16 +181,6 @@ class StatCounter(object):
     def sum(self):
         self.__isavail('sum')
         return self.n * self.mu
-
-    @property
-    def min(self):
-        self.__isavail('min')
-        return self.minValue
-
-    @property
-    def max(self):
-        self.__isavail('max')
-        return self.maxValue
 
     # Return the variance of the values.
     @property
@@ -220,29 +196,18 @@ class StatCounter(object):
         self.__isavail('stdev')
         return sqrt(self.variance)
 
-    #
-    # Return the sample standard deviation of the values, which corrects for bias in estimating the
-    # variance by dividing by N-1 instead of N.
-    #
-    @property
-    def sampleStdev(self):
-        self.__isavail('sampleStdev')
-        return sqrt(self.sampleVariance)
-
-    @property
     def nancount(self):
-        self.__isavail('nancount')
         return self.n_n
 
     @property
     def nanmean(self):
         self.__isavail('nanmean')
-        return self.mu_n
+        return self.mu_n.squeeze()
 
     @property
     def nansum(self):
         self.__isavail('nansum')
-        return self.n_n * self.mu_n
+        return self.n_n * self.mu_n.squeeze()
 
     @property
     def nanmin(self):
@@ -259,20 +224,10 @@ class StatCounter(object):
     def nanvariance(self):
         self.__isavail('nanvariance')
         tmpVar = self.m2_n / self.n_n
-        #set areas with no data to zero
-        tmpVar[isnan(tmpVar)] = 0
-        return tmpVar
-
-    #
-    # Return the sample variance, which corrects for bias in estimating the variance by dividing
-    # by N-1 instead of N.
-    #
-    @property
-    def nansampleVariance(self):
-        self.__isavail('nansampleVariance')
-        tmpVar = self.m2_n / (self.n_n - 1)
-        #set areas with no data to zero
-        tmpVar[isnan(tmpVar)] = 0
+        # set areas with no data to zero
+        mask = isnan(tmpVar)
+        if nansum(mask):
+            tmpVar[isnan(tmpVar)] = 0
         return tmpVar
 
     # Return the standard deviation of the values.
@@ -281,15 +236,8 @@ class StatCounter(object):
         self.__isavail('nanstdev')
         return sqrt(self.nanvariance)
 
-    #
-    # Return the sample standard deviation of the values, which corrects for bias in estimating the
-    # variance by dividing by N-1 instead of N.
-    #
-    @property
-    def nansampleStdev(self):
-        self.__isavail('nansampleStdev')
-        return sqrt(self.nansampleVariance)
-
     def __repr__(self):
-        return ("(count: %s, mean: %s, stdev: %s, max: %s, min: %s, required: %s, nancount: %s, nanmean: %s, nanstdev: %s, nanmax: %s, nanmin: %s)" %
-                (self.count(), self.mean(), self.stdev(), self.max(), self.min(), str(tuple(self.requiredAttrs)), self.nancount(), self.nanmean(), self.nanstdev(), self.nanmax(), self.nanmin()))
+        return ("(count: %s, mean: %s, stdev: %s, required: %s, nancount: %s, nanmean: %s, nanstdev: %s, nanmin: %s, "
+                "nanmax: %s)" %
+                (self.count(), self.mean, self.stdev, str(tuple(self.requiredAttrs)), self.nancount(),
+                 self.nanmean(), self.nanstdev, self.nanmin, self.nanmax))

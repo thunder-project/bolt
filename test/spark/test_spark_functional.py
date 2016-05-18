@@ -1,5 +1,5 @@
 import pytest
-from numpy import arange, repeat
+from numpy import arange, repeat, nan, float32, nanmean, nanmax, nanmin, nanvar, nanstd, nansum
 from bolt import array
 from bolt.utils import allclose
 import generic
@@ -116,3 +116,117 @@ def test_max(sc):
     assert allclose(b.max(axis=0), x.max(axis=0))
     assert allclose(b.max(axis=(0, 1)), x.max(axis=(0, 1)))
     assert b.max(axis=(0, 1, 2)) == x.max(axis=(0, 1, 2))
+
+def test_nanmean(sc):
+    x = arange(2 * 3 * 4).reshape(2, 3, 4).astype(float32)
+    b = array(x, sc, axis=(0,))
+
+    assert allclose(b.nanmean(), nanmean(x))
+    assert allclose(b.nanmean(axis=0), nanmean(x, axis=0))
+    assert allclose(b.nanmean(axis=(0, 1)), nanmean(x, axis=(0, 1)))
+    assert allclose(b.nanmean(axis=(0, 1, 2)), nanmean(x, axis=(0, 1, 2)))
+
+    x[1, 2, 3] = nan
+    x[0, 0, 2] = nan
+    x[1, 1, 0] = nan
+    b = array(x, sc, axis=(0,))
+
+    assert allclose(b.nanmean(), nanmean(x))
+    assert allclose(b.nanmean(axis=0), nanmean(x, axis=0))
+    assert allclose(b.nanmean(axis=(0, 1)), nanmean(x, axis=(0, 1)))
+    assert allclose(b.nanmean(axis=(0, 1, 2)), nanmean(x, axis=(0, 1, 2)))
+
+def test_nanstd(sc):
+    x = arange(2 * 3 * 4).reshape(2, 3, 4).astype(float32)
+    b = array(x, sc, axis=(0,))
+
+    assert allclose(b.nanstd(), nanstd(x))
+    assert allclose(b.nanstd(axis=0), nanstd(x, axis=0))
+    assert allclose(b.nanstd(axis=(0, 1)), nanstd(x, axis=(0, 1)))
+    assert allclose(b.nanstd(axis=(0, 1, 2)), nanstd(x, axis=(0, 1, 2)))
+
+    x[1, 2, 3] = nan
+    x[0, 0, 2] = nan
+    x[1, 1, 0] = nan
+    b = array(x, sc, axis=(0,))
+
+    assert allclose(b.nanstd(), nanstd(x))
+    assert allclose(b.nanstd(axis=0), nanstd(x, axis=0))
+    assert allclose(b.nanstd(axis=(0, 1)), nanstd(x, axis=(0, 1)))
+    assert allclose(b.nanstd(axis=(0, 1, 2)), nanstd(x, axis=(0, 1, 2)))
+
+def test_nanvar(sc):
+    x = arange(2 * 3 * 4).reshape(2, 3, 4).astype(float32)
+    b = array(x, sc, axis=(0,))
+
+    assert allclose(b.nanvar(), nanvar(x))
+    assert allclose(b.nanvar(axis=0), nanvar(x, axis=0))
+    assert allclose(b.nanvar(axis=(0, 1)), nanvar(x, axis=(0, 1)))
+    assert allclose(b.nanvar(axis=(0, 1, 2)), nanvar(x, axis=(0, 1, 2)))
+
+    x[1, 2, 3] = nan
+    x[0, 0, 2] = nan
+    x[1, 1, 0] = nan
+    b = array(x, sc, axis=(0,))
+
+    assert allclose(b.nanvar(), nanvar(x))
+    assert allclose(b.nanvar(axis=0), nanvar(x, axis=0))
+    assert allclose(b.nanvar(axis=(0, 1)), nanvar(x, axis=(0, 1)))
+    assert allclose(b.nanvar(axis=(0, 1, 2)), nanvar(x, axis=(0, 1, 2)))
+
+def test_nansum(sc):
+    x = arange(2 * 3 * 4).reshape(2, 3, 4).astype(float32)
+    b = array(x, sc, axis=(0,))
+
+    assert allclose(b.nansum(), nansum(x))
+    assert allclose(b.nansum(axis=0), nansum(x, axis=0))
+    assert allclose(b.nansum(axis=(0, 1)), nansum(x, axis=(0, 1)))
+    assert allclose(b.nansum(axis=(0, 1, 2)), nansum(x, axis=(0, 1, 2)))
+
+    x[1, 2, 3] = nan
+    x[0, 0, 2] = nan
+    x[1, 1, 0] = nan
+    b = array(x, sc, axis=(0,))
+
+    assert allclose(b.nansum(), nansum(x))
+    assert allclose(b.nansum(axis=0), nansum(x, axis=0))
+    assert allclose(b.nansum(axis=(0, 1)), nansum(x, axis=(0, 1)))
+    assert allclose(b.nansum(axis=(0, 1, 2)), nansum(x, axis=(0, 1, 2)))
+
+def test_nanmin(sc):
+    x = arange(2 * 3 * 4).reshape(2, 3, 4).astype(float32)
+    b = array(x, sc, axis=(0,))
+
+    assert allclose(b.nanmin(), nanmin(x))
+    assert allclose(b.nanmin(axis=0), nanmin(x, axis=0))
+    assert allclose(b.nanmin(axis=(0, 1)), nanmin(x, axis=(0, 1)))
+    assert allclose(b.nanmin(axis=(0, 1, 2)), nanmin(x, axis=(0, 1, 2)))
+
+    x[1, 2, 3] = nan
+    x[0, 0, 2] = nan
+    x[1, 1, 0] = nan
+    b = array(x, sc, axis=(0,))
+
+    assert allclose(b.nanmin(), nanmin(x))
+    assert allclose(b.nanmin(axis=0), nanmin(x, axis=0))
+    assert allclose(b.nanmin(axis=(0, 1)), nanmin(x, axis=(0, 1)))
+    assert allclose(b.nanmin(axis=(0, 1, 2)), nanmin(x, axis=(0, 1, 2)))
+
+def test_nanmax(sc):
+    x = arange(2 * 3 * 4).reshape(2, 3, 4).astype(float32)
+    b = array(x, sc, axis=(0,))
+
+    assert allclose(b.nanmax(), nanmax(x))
+    assert allclose(b.nanmax(axis=0), nanmax(x, axis=0))
+    assert allclose(b.nanmax(axis=(0, 1)), nanmax(x, axis=(0, 1)))
+    assert allclose(b.nanmax(axis=(0, 1, 2)), nanmax(x, axis=(0, 1, 2)))
+
+    x[1, 2, 3] = nan
+    x[0, 0, 2] = nan
+    x[1, 1, 0] = nan
+    b = array(x, sc, axis=(0,))
+
+    assert allclose(b.nanmax(), nanmax(x))
+    assert allclose(b.nanmax(axis=0), nanmax(x, axis=0))
+    assert allclose(b.nanmax(axis=(0, 1)), nanmax(x, axis=(0, 1)))
+    assert allclose(b.nanmax(axis=(0, 1, 2)), nanmax(x, axis=(0, 1, 2)))
