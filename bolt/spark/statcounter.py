@@ -195,8 +195,8 @@ class StatCounter(object):
             return self.m2 / self.n
 
     @property
-    def stdev(self):
-        self.__isavail('stdev')
+    def std(self):
+        self.__isavail('std')
         return sqrt(self.var)
 
     def nancount(self):
@@ -229,6 +229,7 @@ class StatCounter(object):
         self.__isavail('nanmax')
         counts = self.nancount()
         max = self.maxValue_n
+        if len(max) > 0
         max[counts == 0] = float('NaN')
         return max
 
@@ -247,7 +248,7 @@ class StatCounter(object):
         return sqrt(self.nanvar)
 
     def __repr__(self):
-        return ("(count: %s, mean: %s, stdev: %s, required: %s, nancount: %s, nanmean: %s, nanstd: %s, nanmin: %s, "
+        return ("(count: %s, mean: %s, std: %s, required: %s, nancount: %s, nanmean: %s, nanstd: %s, nanmin: %s, "
                 "nanmax: %s)" %
-                (self.count(), self.mean, self.stdev, str(tuple(self.requiredAttrs)), self.nancount(),
+                (self.count(), self.mean, self.std, str(tuple(self.requiredAttrs)), self.nancount(),
                  self.nanmean(), self.nanstd, self.nanmin, self.nanmax))
