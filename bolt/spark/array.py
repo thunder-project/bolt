@@ -362,7 +362,7 @@ class BoltArraySpark(BoltArray):
         keepdims : boolean, optional, default=False
             Keep axis remaining after operation with size 1.
         """
-        return self._stat(axis, name='variance', keepdims=keepdims)
+        return self._stat(axis, name='var', keepdims=keepdims)
 
     def nanvar(self, axis=None, keepdims=False):
         """
@@ -377,7 +377,7 @@ class BoltArraySpark(BoltArray):
         keepdims : boolean, optional, default=False
             Keep axis remaining after operation with size 1.
         """
-        return self._stat(axis, name='nanvariance', keepdims=keepdims)
+        return self._stat(axis, name='nanvar', keepdims=keepdims)
 
     def std(self, axis=None, keepdims=False):
         """
@@ -392,7 +392,7 @@ class BoltArraySpark(BoltArray):
         keepdims : boolean, optional, default=False
             Keep axis remaining after operation with size 1.
         """
-        return self._stat(axis, name='stdev', keepdims=keepdims)
+        return self._stat(axis, name='std', keepdims=keepdims)
 
     def nanstd(self, axis=None, keepdims=False):
         """
@@ -407,7 +407,7 @@ class BoltArraySpark(BoltArray):
         keepdims : boolean, optional, default=False
             Keep axis remaining after operation with size 1.
         """
-        return self._stat(axis, name='nanstdev', keepdims=keepdims)
+        return self._stat(axis, name='nanstd', keepdims=keepdims)
 
     def sum(self, axis=None, keepdims=False):
         """

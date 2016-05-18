@@ -37,12 +37,12 @@ class StatCounter(object):
     REQUIRED_FOR = {
         'mean': ('mu', 'n_n'),
         'sum': ('mu', 'n_n'),
-        'variance': ('mu', 'm2', 'n_n'),
-        'stdev': ('mu', 'n', 'm2', 'n_n'),
+        'var': ('mu', 'm2', 'n_n'),
+        'std': ('mu', 'n', 'm2', 'n_n'),
         'nanmean': ('mu_n', 'n_n'),
         'nansum': ('mu_n', 'n_n'),
-        'nanvariance': ('mu_n', 'm2_n', 'n_n'),
-        'nanstdev': ('mu_n', 'm2_n', 'n_n'),
+        'nanvar': ('mu_n', 'm2_n', 'n_n'),
+        'nanstd': ('mu_n', 'm2_n', 'n_n'),
         'nanmin': ('minValue_n', 'n_n'),
         'nanmax': ('maxValue_n', 'n_n'),
         'all': ('n', 'mu', 'm2', 'n_n', 'mu_n', 'm2_n')
@@ -187,8 +187,8 @@ class StatCounter(object):
 
     # Return the variance of the values.
     @property
-    def variance(self):
-        self.__isavail('variance')
+    def var(self):
+        self.__isavail('var')
         if self.n == 0:
             return float('nan')
         else:
@@ -197,7 +197,7 @@ class StatCounter(object):
     @property
     def stdev(self):
         self.__isavail('stdev')
-        return sqrt(self.variance)
+        return sqrt(self.var)
 
     def nancount(self):
         return self.n_n
@@ -205,42 +205,49 @@ class StatCounter(object):
     @property
     def nanmean(self):
         self.__isavail('nanmean')
-        return self.mu_n.squeeze()
+        counts = self.nancount()
+        mean = self.mu_n.squeeze()
+        mean[counts == 0] = float('NaN')
+        return mean
+
 
     @property
     def nansum(self):
         self.__isavail('nansum')
-        return self.n_n * self.mu_n.squeeze()
+        return self.nancount() * self.mu_n.squeeze()
 
     @property
     def nanmin(self):
         self.__isavail('nanmin')
-        return self.minValue_n
+        counts = self.nancount()
+        min = self.minValue_n
+        min[counts == 0] = float('NaN')
+        return min
 
     @property
     def nanmax(self):
         self.__isavail('nanmax')
-        return self.maxValue_n
+        counts = self.nancount()
+        max = self.maxValue_n
+        max[counts == 0] = float('NaN')
+        return max
 
     # Return the variance of the values.
     @property
-    def nanvariance(self):
-        self.__isavail('nanvariance')
-        tmpVar = self.m2_n / self.n_n
-        # set areas with no data to zero
-        mask = isnan(tmpVar)
-        if nansum(mask):
-            tmpVar[isnan(tmpVar)] = 0
-        return tmpVar
+    def nanvar(self):
+        self.__isavail('nanvar')
+        counts = self.nancount()
+        var = self.m2_n
+        return var / counts
 
     # Return the standard deviation of the values.
     @property
-    def nanstdev(self):
-        self.__isavail('nanstdev')
-        return sqrt(self.nanvariance)
+    def nanstd(self):
+        self.__isavail('nanstd')
+        return sqrt(self.nanvar)
 
     def __repr__(self):
-        return ("(count: %s, mean: %s, stdev: %s, required: %s, nancount: %s, nanmean: %s, nanstdev: %s, nanmin: %s, "
+        return ("(count: %s, mean: %s, stdev: %s, required: %s, nancount: %s, nanmean: %s, nanstd: %s, nanmin: %s, "
                 "nanmax: %s)" %
                 (self.count(), self.mean, self.stdev, str(tuple(self.requiredAttrs)), self.nancount(),
-                 self.nanmean(), self.nanstdev, self.nanmin, self.nanmax))
+                 self.nanmean(), self.nanstd, self.nanmin, self.nanmax))
