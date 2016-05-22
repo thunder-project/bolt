@@ -1012,3 +1012,108 @@ class BoltArraySpark(BoltArray):
         """
         for x in self._rdd.take(10):
             print(x)
+
+    def add(self, arry):
+        """
+        Add this array element-wise with another array (arry).
+
+        Paramters
+        ---------
+        arry : ndarray, BoltArrayLocal, or BoltArraySpark
+            Another array to add element-wise
+
+        Returns
+        -------
+        BoltArraySpark
+        """
+        if isinstance(arry, ndarray):
+            from bolt.spark.construct import ConstructSpark
+            arry = ConstructSpark.array(arry, self._rdd.context, axis=range(0, self.split))
+        else:
+            if not isinstance(arry, BoltArraySpark):
+                raise ValueError("other must be local array or spark array, got %s" % type(arry))
+
+        if not all([x == y]):
+            raise ValueError("all the input array dimensions must match exactly")
+            
+        rdd = self._rdd.join(arry._rdd).mapValues(lambda x: x[0] + x[1])
+        return self._constructor(rdd).__finalize__(self)
+        
+    def subtract(self, arry):
+        """
+        Subtract another array (arry) element-wise from this array.
+
+        Paramters
+        ---------
+        arry : ndarray, BoltArrayLocal, or BoltArraySpark
+            Another array to subtract element-wise
+
+        Returns
+        -------
+        BoltArraySpark
+        """
+        if isinstance(arry, ndarray):
+            from bolt.spark.construct import ConstructSpark
+            arry = ConstructSpark.array(arry, self._rdd.context, axis=range(0, self.split))
+        else:
+            if not isinstance(arry, BoltArraySpark):
+                raise ValueError("other must be local array or spark array, got %s" % type(arry))
+
+        if not all([x == y]):
+            raise ValueError("all the input array dimensions must match exactly")
+            
+        rdd = self._rdd.join(arry._rdd).mapValues(lambda x: x[0] - x[1])
+        return self._constructor(rdd).__finalize__(self)
+        
+    def multiply(self, arry):
+        """
+        Multiply this array element-wise with another array (arry).
+
+        Paramters
+        ---------
+        arry : ndarray, BoltArrayLocal, or BoltArraySpark
+            Another array to multiply element-wise
+
+        Returns
+        -------
+        BoltArraySpark
+        """
+        if isinstance(arry, ndarray):
+            from bolt.spark.construct import ConstructSpark
+            arry = ConstructSpark.array(arry, self._rdd.context, axis=range(0, self.split))
+        else:
+            if not isinstance(arry, BoltArraySpark):
+                raise ValueError("other must be local array or spark array, got %s" % type(arry))
+
+        if not all([x == y]):
+            raise ValueError("all the input array dimensions must match exactly")
+            
+        rdd = self._rdd.join(arry._rdd).mapValues(lambda x: x[0] * x[1])
+        return self._constructor(rdd).__finalize__(self)
+        
+    def divide(self, arry):
+        """
+        Divide this array by another array (arry) element-wise.
+
+        Paramters
+        ---------
+        arry : ndarray, BoltArrayLocal, or BoltArraySpark
+            Another array to divide by element-wise
+
+        Returns
+        -------
+        BoltArraySpark
+        """
+        if isinstance(arry, ndarray):
+            from bolt.spark.construct import ConstructSpark
+            arry = ConstructSpark.array(arry, self._rdd.context, axis=range(0, self.split))
+        else:
+            if not isinstance(arry, BoltArraySpark):
+                raise ValueError("other must be local array or spark array, got %s" % type(arry))
+
+        if not all([x == y]):
+            raise ValueError("all the input array dimensions must match exactly")
+        
+        from future import division
+        rdd = self._rdd.join(arry._rdd).mapValues(lambda x: x[0] / x[1])
+        return self._constructor(rdd).__finalize__(self)
