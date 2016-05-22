@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, divide
 from numpy import asarray, unravel_index, prod, mod, ndarray, ceil, where, \
     r_, sort, argsort, array, random, arange, ones, expand_dims, sum
 from itertools import groupby
@@ -1013,7 +1013,7 @@ class BoltArraySpark(BoltArray):
         for x in self._rdd.take(10):
             print(x)
 
-    def add(self, arry):
+    def __add__(self, arry):
         """
         Add this array element-wise with another array (arry).
 
@@ -1039,7 +1039,7 @@ class BoltArraySpark(BoltArray):
         rdd = self._rdd.join(arry._rdd).mapValues(lambda x: x[0] + x[1])
         return self._constructor(rdd).__finalize__(self)
         
-    def subtract(self, arry):
+    def __sub__(self, arry):
         """
         Subtract another array (arry) element-wise from this array.
 
@@ -1065,7 +1065,7 @@ class BoltArraySpark(BoltArray):
         rdd = self._rdd.join(arry._rdd).mapValues(lambda x: x[0] - x[1])
         return self._constructor(rdd).__finalize__(self)
         
-    def multiply(self, arry):
+    def __mul__(self, arry):
         """
         Multiply this array element-wise with another array (arry).
 
@@ -1091,7 +1091,7 @@ class BoltArraySpark(BoltArray):
         rdd = self._rdd.join(arry._rdd).mapValues(lambda x: x[0] * x[1])
         return self._constructor(rdd).__finalize__(self)
         
-    def divide(self, arry):
+    def __truediv__(self, arry):
         """
         Divide this array by another array (arry) element-wise.
 
