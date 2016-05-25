@@ -3,28 +3,28 @@ from numpy import arange, true_divide
 from bolt import array
 from bolt.utils import allclose
 
-from pyspark import SparkConf, SparkContext
-
-@pytest.fixture(scope="session",
-                params=[pytest.mark.spark_yarn('yarn'),
-                        pytest.mark.spark_local('local')])
-def sc(request):
-    if request.param == 'local':
-        conf = (SparkConf()
-                .setMaster("local[2]")
-                .setAppName("pytest-pyspark-local-testing")
-                )
-    elif request.param == 'yarn':
-        conf = (SparkConf()
-                .setMaster("yarn-client")
-                .setAppName("pytest-pyspark-yarn-testing")
-                .set("spark.executor.memory", "1g")
-                .set("spark.executor.instances", 2)
-                )
-    request.addfinalizer(lambda: spark_context.stop())
-
-    spark_context = SparkContext(conf=conf)
-    return spark_context
+#from pyspark import SparkConf, SparkContext
+#
+#@pytest.fixture(scope="session",
+#                params=[pytest.mark.spark_yarn('yarn'),
+#                        pytest.mark.spark_local('local')])
+#def sc(request):
+#    if request.param == 'local':
+#        conf = (SparkConf()
+#                .setMaster("local[2]")
+#                .setAppName("pytest-pyspark-local-testing")
+#                )
+#    elif request.param == 'yarn':
+#        conf = (SparkConf()
+#                .setMaster("yarn-client")
+#                .setAppName("pytest-pyspark-yarn-testing")
+#                .set("spark.executor.memory", "1g")
+#                .set("spark.executor.instances", 2)
+#                )
+#    request.addfinalizer(lambda: spark_context.stop())
+#
+#    spark_context = SparkContext(conf=conf)
+#    return spark_context
 
 def test_elementwise_spark(sc):
     x = arange(1, 2*3*4+1).reshape(2, 3, 4)
