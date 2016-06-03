@@ -7,7 +7,7 @@ from bolt.base import BoltArray
 from bolt.spark.stack import StackedArray
 from bolt.spark.utils import zip_with_index
 from bolt.spark.statcounter import StatCounter
-from bolt.utils import slicify, listify, tupleize, argpack, inshape, istransposeable, isreshapeable
+from bolt.utils import slicify, listify, tupleize, argpack, inshape, istransposeable, isreshapeable, allclose
 
 
 class BoltArraySpark(BoltArray):
@@ -536,8 +536,10 @@ class BoltArraySpark(BoltArray):
         def key_check(key):
             return key in key_tuples
 
+        sorted_index = argsort(index[0])
+
         def key_func(key):
-            return unravel_index(key, shape)
+            return unravel_index(sorted_index[key], shape)
 
         # filter records based on key targets
         filtered = self._rdd.filter(lambda kv: key_check(kv[0]))
@@ -663,6 +665,9 @@ class BoltArraySpark(BoltArray):
 
         # if any key indices used negative steps, records are no longer ordered
         if self._ordered is False or any([isinstance(s, slice) and s.step<0 for s in index[:self.split]]):
+            ordered = False
+        # if any keys are not in order the records are no longer ordered
+        elif any([isinstance(s, ndarray) and len(s.shape) == 1 and not allclose(array(sorted(s)), s) for s in index[:self.split]]):
             ordered = False
         else:
             ordered = True
