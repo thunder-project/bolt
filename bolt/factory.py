@@ -1,9 +1,11 @@
 from bolt.local.construct import ConstructLocal
 from bolt.spark.construct import ConstructSpark
+from bolt.localspark.construct import ConstructSpark
 
 constructors = [
     ('local', ConstructLocal),
-    ('spark', ConstructSpark)
+    ('spark', ConstructSpark),
+    {'localspark', ConstructLocalSpark}
 ]
 
 def wrapped(f):
