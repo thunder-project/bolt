@@ -14,7 +14,7 @@ class LocalRDD(object):
         """
         self.kv_list = kv_list
         self.lazy_fcn_list = [] if fcn_to_apply is None else fcn_to_apply
-        self.cached_list = []
+        self.cached_list = None
         
     def map(self, c_func):
         return LocalRDD(self.kv_list, fcn_to_apply = self.lazy_fcn_list + [c_func])
@@ -40,8 +40,18 @@ class LocalRDD(object):
     def values(self):
         return self.map(lambda (_, v): v)
     
+    def first(self):
+        return self.collect()[0]
+    
     def collect(self):
-        return LocalRDD.expand(self)
+        if self.cached_list is None:
+            self.cached_list = LocalRDD.expand(self)
+        return self.cached_list
+    
+    @property
+    def context(self):
+        # making a new one is easier
+        return LocalSparkContext()
     
     @staticmethod
     def expand(curRDD):
@@ -54,9 +64,7 @@ class LocalRDD(object):
                 last_list = out_list
             else:
                 last_list = map(c_func, last_list)
-        return last_list
-            
-        
+        return last_list         
 
 class LocalPartitionedRDD(object):
     
