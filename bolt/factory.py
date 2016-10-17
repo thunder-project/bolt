@@ -1,6 +1,6 @@
 from bolt.local.construct import ConstructLocal
 from bolt.spark.construct import ConstructSpark
-from bolt.localspark.construct import ConstructSpark
+from bolt.localspark.construct import ConstructLocalSpark
 
 constructors = [
     ('local', ConstructLocal),
