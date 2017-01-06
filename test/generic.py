@@ -94,24 +94,24 @@ def reduce_suite(arr, b):
 
     # Reduce over the first axis with an add
     reduced = b.reduce(add, axis=0)
-    res = reduced.toarray()
+    res = reduced
     assert res.shape == (arr.shape[1], arr.shape[2])
     assert allclose(res, sum(arr, 0))
 
     # Reduce over multiple axes with an add
     reduced = b.reduce(add, axis=(0, 1))
-    res = reduced.toarray()
+    res = reduced
     assert res.shape == (arr.shape[2],)
     assert allclose(res, sum(sum(arr, 0), 1))
 
     # Reduce over various other axes with an add
     reduced = b.reduce(add, axis=1)
-    res = reduced.toarray()
+    res = reduced
     assert res.shape == (arr.shape[0], arr.shape[2])
     assert allclose(res, sum(arr, 1))
 
     reduced = b.reduce(add, axis=(1, 2))
-    res = reduced.toarray()
+    res = reduced
     assert res.shape == (arr.shape[0],)
     assert allclose(res, sum(sum(arr, 1), 1))
 
