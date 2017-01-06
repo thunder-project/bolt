@@ -70,12 +70,11 @@ def map_suite(arr, b):
         res = mapped.toarray()
 
     # check that changes in dtype are correctly handled
-    if b.mode == 'spark':
-        func3 = lambda x: x.astype('float32')
-        mapped = b.map(func3, axis=0)
-        assert mapped.dtype == dtype('float32')
-        mapped = b.map(func3, axis=0, dtype=dtype('float32'))
-        assert mapped.dtype == dtype('float32')
+    func3 = lambda x: x.astype('float32')
+    mapped = b.map(func3, axis=0)
+    assert mapped.dtype == dtype('float32')
+    mapped = b.map(func3, axis=0, dtype=dtype('float32'))
+    assert mapped.dtype == dtype('float32')
 
 def reduce_suite(arr, b):
     """
@@ -151,11 +150,10 @@ def filter_suite(arr, b):
     assert res.shape[0] <= b.shape[0]
 
     # rerun with sorting
-    if not b.mode == "local":
-        filtered = b.filter(lambda x: filter_half(x) < 0.5, sort=True)
-        res = filtered.toarray()
-        assert res.shape[1:] == b.shape[1:]
-        assert res.shape[0] <= b.shape[0]
+    filtered = b.filter(lambda x: filter_half(x) < 0.5, sort=True)
+    res = filtered.toarray()
+    assert res.shape[1:] == b.shape[1:]
+    assert res.shape[0] <= b.shape[0]
 
     # filter out half of the values over the second axis
     filtered = b.filter(lambda x: filter_half(x) < 0.5, axis=1)

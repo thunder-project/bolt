@@ -2,26 +2,26 @@ import pytest
 from numpy import arange
 from bolt import array, ones, zeros, concatenate
 from bolt.utils import allclose
-from bolt.array.array import BoltArraySpark
+from bolt.array.array import BoltArray
 
 def test_array(sc):
 
     x = arange(2*3*4).reshape((2, 3, 4))
 
     b = array(x, sc)
-    assert isinstance(b, BoltArraySpark)
+    assert isinstance(b, BoltArray)
     assert allclose(x, b.toarray())
 
     b = array(x, sc, axis=0)
-    assert isinstance(b, BoltArraySpark)
+    assert isinstance(b, BoltArray)
     assert allclose(x, b.toarray())
 
     b = array(x, sc, axis=(0, 1))
-    assert isinstance(b, BoltArraySpark)
+    assert isinstance(b, BoltArray)
     assert allclose(x, b.toarray())
 
     b = array(x, sc, axis=(0, 1), npartitions=5)
-    assert isinstance(b, BoltArraySpark)
+    assert isinstance(b, BoltArray)
     assert allclose(x, b.toarray())
     assert b.tordd().getNumPartitions() == 5
 

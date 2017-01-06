@@ -3,14 +3,13 @@ from numpy import asarray, unravel_index, prod, mod, ndarray, ceil, where, \
     r_, sort, argsort, array, random, arange, ones, expand_dims, sum
 from itertools import groupby
 
-from bolt.array.base import BoltArray
 from bolt.array.stack import StackedArray
 from bolt.array.utils import zip_with_index
 from bolt.array.statcounter import StatCounter
 from bolt.utils import slicify, listify, tupleize, argpack, inshape, istransposeable, isreshapeable
 
 
-class BoltArraySpark(BoltArray):
+class BoltArray(object):
 
     _metadata = {
         '_shape': None,
@@ -24,12 +23,25 @@ class BoltArraySpark(BoltArray):
         self._shape = shape
         self._split = split
         self._dtype = dtype
-        self._mode = 'spark'
         self._ordered = ordered
+
+    def __finalize__(self, other):
+        if isinstance(other, BoltArray):
+            for name in self._metadata:
+                other_attr = getattr(other, name, None)
+                if (other_attr is not self._metadata[name]) \
+                        and (getattr(self, name, None) is self._metadata[name]):
+                    object.__setattr__(self, name, other_attr)
+        return self
+
+    def __repr__(self):
+        s = "BoltArray\n"
+        s += "shape: %s\n" % str(self.shape)
+        return s
 
     @property
     def _constructor(self):
-        return BoltArraySpark
+        return BoltArray
 
     def __array__(self):
         return self.toarray()
@@ -98,7 +110,7 @@ class BoltArraySpark(BoltArray):
 
         Returns
         -------
-        BoltArraySpark
+        BoltArray
         """
         # ensure that the specified axes are valid
         inshape(self.shape, axis)
@@ -149,7 +161,7 @@ class BoltArraySpark(BoltArray):
 
         Returns
         -------
-        BoltArraySpark
+        BoltArray
         """
         axis = tupleize(axis)
         swapped = self._align(axis)
@@ -212,7 +224,7 @@ class BoltArraySpark(BoltArray):
 
         Returns
         -------
-        BoltArraySpark
+        BoltArray
         """
         axis = tupleize(axis)
 
@@ -259,7 +271,7 @@ class BoltArraySpark(BoltArray):
 
         Returns
         -------
-        BoltArraySpark
+        BoltArray
         """
         from numpy import ndarray
 
@@ -294,7 +306,7 @@ class BoltArraySpark(BoltArray):
             will compute over all axes
 
         func : function, optional, default=None
-            Function for reduce, see BoltArraySpark.reduce
+            Function for reduce, see BoltArray.reduce
 
         name : str
             A named statistic, see StatCounter
@@ -429,7 +441,7 @@ class BoltArraySpark(BoltArray):
 
         Paramters
         ---------
-        arry : ndarray, BoltArrayLocal, or BoltArraySpark
+        arry : ndarray, or BoltArray
             Another array to concatenate with
 
         axis : int, optional, default=0
@@ -437,13 +449,13 @@ class BoltArraySpark(BoltArray):
 
         Returns
         -------
-        BoltArraySpark
+        BoltArray
         """
         if isinstance(arry, ndarray):
             from bolt.array.construct import array
             arry = array(arry, self._rdd.context, axis=range(0, self.split))
         else:
-            if not isinstance(arry, BoltArraySpark):
+            if not isinstance(arry, BoltArray):
                 raise ValueError("other must be local array or spark array, got %s" % type(arry))
 
         if not all([x == y if not i == axis else True
@@ -736,7 +748,7 @@ class BoltArraySpark(BoltArray):
 
         Returns
         -------
-        BoltArraySpark
+        BoltArray
         """
         kaxes = asarray(tupleize(kaxes), 'int')
         vaxes = asarray(tupleize(vaxes), 'int')
@@ -850,7 +862,7 @@ class BoltArraySpark(BoltArray):
         i = self._reshapebasic(new)
         if i == -1:
             raise NotImplementedError("Currently no support for reshaping between "
-                                      "keys and values for BoltArraySpark")
+                                      "keys and values for BoltArray")
         else:
             new_key_shape, new_value_shape = new[:i], new[i:]
             return self.keys.reshape(new_key_shape).values.reshape(new_value_shape)

@@ -14,11 +14,11 @@ def test_map(sc):
     # Test all map functionality when the base array is split after the first axis
     generic.map_suite(x, b)
 
-    # Split the BoltArraySpark after the second axis and rerun the tests
+    # Split the BoltArray after the second axis and rerun the tests
     b = array(x, sc, axis=(0, 1))
     generic.map_suite(x, b)
 
-    # Split the BoltArraySpark after the third axis (scalar values) and rerun the tests
+    # Split the BoltArray after the third axis (scalar values) and rerun the tests
     b = array(x, sc, axis=(0, 1, 2))
     generic.map_suite(x, b)
 
@@ -39,11 +39,11 @@ def test_reduce(sc):
     # Test all reduce functionality when the base array is split after the first axis
     generic.reduce_suite(arr, b)
 
-    # Split the BoltArraySpark after the second axis and rerun the tests
+    # Split the BoltArray after the second axis and rerun the tests
     b = array(arr, sc, axis=(0, 1))
     generic.reduce_suite(arr, b)
 
-    # Split the BoltArraySpark after the third axis (scalar values) and rerun the tests
+    # Split the BoltArray after the third axis (scalar values) and rerun the tests
     b = array(arr, sc, axis=(0, 1, 2))
     generic.reduce_suite(arr, b)
 
@@ -55,11 +55,11 @@ def test_filter(sc):
     # Test all filter functionality when the base array is split after the first axis
     generic.filter_suite(x, b)
 
-    # Split the BoltArraySpark after the second axis and rerun the tests
+    # Split the BoltArray after the second axis and rerun the tests
     b = array(x, sc, axis=(0, 1))
     generic.filter_suite(x, b)
 
-    # Split the BoltArraySpark after the third axis (scalar values) and rerun the tests
+    # Split the BoltArray after the third axis (scalar values) and rerun the tests
     b = array(x, sc, axis=(0, 1, 2))
     generic.filter_suite(x, b)
 

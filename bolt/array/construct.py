@@ -2,7 +2,7 @@ from numpy import unravel_index, prod, arange, asarray, float64
 
 from itertools import product
 
-from bolt.array.array import BoltArraySpark
+from bolt.array.array import BoltArray
 from bolt.array.utils import get_kv_shape, get_kv_axes
 
 
@@ -34,7 +34,7 @@ def array(a, context=None, axis=(0,), dtype=None, npartitions=None):
 
     Returns
     -------
-    BoltArraySpark
+    BoltArray
     """
     if dtype is None:
         arry = asarray(a)
@@ -63,7 +63,7 @@ def array(a, context=None, axis=(0,), dtype=None, npartitions=None):
     vals = arry.reshape((prod(key_shape),) + val_shape)
 
     rdd = context.parallelize(zip(keys, vals), npartitions)
-    return BoltArraySpark(rdd, shape=shape, split=split, dtype=dtype)
+    return BoltArray(rdd, shape=shape, split=split, dtype=dtype)
 
 def ones(shape, context=None, axis=(0,), dtype=float64, npartitions=None):
     """
@@ -91,7 +91,7 @@ def ones(shape, context=None, axis=(0,), dtype=float64, npartitions=None):
 
     Returns
     -------
-    BoltArraySpark
+    BoltArray
     """
     from numpy import ones
     return _wrap(ones, shape, context, axis, dtype, npartitions)
@@ -122,7 +122,7 @@ def zeros(shape, context=None, axis=(0,), dtype=float64, npartitions=None):
 
     Returns
     -------
-    BoltArraySpark
+    BoltArray
     """
     from numpy import zeros
     return _wrap(zeros, shape, context, axis, dtype, npartitions)
@@ -143,7 +143,7 @@ def concatenate(arrays, axis=0):
 
     Returns
     -------
-    BoltArraySpark
+    BoltArray
     """
     if not isinstance(arrays, tuple):
         raise ValueError("data type not understood")
@@ -151,9 +151,9 @@ def concatenate(arrays, axis=0):
         raise NotImplementedError("spark concatenation only supports two arrays")
 
     first, second = arrays
-    if isinstance(first, BoltArraySpark):
+    if isinstance(first, BoltArray):
         return first.concatenate(second, axis)
-    elif isinstance(second, BoltArraySpark):
+    elif isinstance(second, BoltArray):
         first = array(first, second._rdd.context)
         return first.concatenate(second, axis)
     else:
@@ -166,8 +166,8 @@ def _argcheck(*args, **kwargs):
     Conditions are:
     (1) a positional argument is a SparkContext
     (2) keyword arg 'context' is a SparkContext
-    (3) an argument is a BoltArraySpark, or
-    (4) an argument is a nested list containing a BoltArraySpark
+    (3) an argument is a BoltArray, or
+    (4) an argument is a nested list containing a BoltArray
     """
     try:
         from pyspark import SparkContext
@@ -176,8 +176,8 @@ def _argcheck(*args, **kwargs):
 
     cond1 = any([isinstance(arg, SparkContext) for arg in args])
     cond2 = isinstance(kwargs.get('context', None), SparkContext)
-    cond3 = any([isinstance(arg, BoltArraySpark) for arg in args])
-    cond4 = any([any([isinstance(sub, BoltArraySpark) for sub in arg])
+    cond3 = any([isinstance(arg, BoltArray) for arg in args])
+    cond4 = any([any([isinstance(sub, BoltArray) for sub in arg])
                  if isinstance(arg, (tuple, list)) else False for arg in args])
     return cond1 or cond2 or cond3 or cond4
 
@@ -209,4 +209,4 @@ def _wrap(func, shape, context=None, axis=(0,), dtype=None, npartitions=None):
 
     # use a map to make the arrays in parallel
     rdd = rdd.map(lambda x: (x, func(value_shape, dtype, order='C')))
-    return BoltArraySpark(rdd, shape=shape, split=split, dtype=dtype)
+    return BoltArray(rdd, shape=shape, split=split, dtype=dtype)

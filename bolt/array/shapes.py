@@ -1,12 +1,12 @@
 from numpy import unravel_index, ravel_multi_index
 
 from bolt.utils import argpack, istransposeable, isreshapeable
-from bolt.array.array import BoltArraySpark
+from bolt.array.array import BoltArray
 
 
 class Shapes(object):
     """
-    Base Shape class. These classes wrap a BoltArraySpark in their
+    Base Shape class. These classes wrap a BoltArray in their
     entirity, but implement the following attributes and methods as if
     they were only working on the keys or the values, depending which
     subclass is used.
@@ -28,7 +28,7 @@ class Shapes(object):
 class Keys(Shapes):
     """
     This class implements all the base shape attributes and methods
-    for the keys of a BoltArraySpark.
+    for the keys of a BoltArray.
     """
     def __init__(self, barray):
         self._barray = barray
@@ -39,8 +39,8 @@ class Keys(Shapes):
 
     def reshape(self, *shape):
         """
-        Reshape just the keys of a BoltArraySpark, returning a
-        new BoltArraySpark.
+        Reshape just the keys of a BoltArray, returning a
+        new BoltArray.
 
         Parameters
         ----------
@@ -61,12 +61,12 @@ class Keys(Shapes):
         newsplit = len(new)
         newshape = new + self._barray.values.shape
 
-        return BoltArraySpark(newrdd, shape=newshape, split=newsplit).__finalize__(self._barray)
+        return BoltArray(newrdd, shape=newshape, split=newsplit).__finalize__(self._barray)
 
     def transpose(self, *axes):
         """
-        Transpose just the keys of a BoltArraySpark, returning a
-        new BoltArraySpark.
+        Transpose just the keys of a BoltArray, returning a
+        new BoltArray.
 
         Parameters
         ----------
@@ -86,7 +86,7 @@ class Keys(Shapes):
         newrdd = self._barray._rdd.map(lambda kv: (f(kv[0]), kv[1]))
         newshape = tuple(self.shape[i] for i in new) + self._barray.values.shape
 
-        return BoltArraySpark(newrdd, shape=newshape, ordered=False).__finalize__(self._barray)
+        return BoltArray(newrdd, shape=newshape, ordered=False).__finalize__(self._barray)
 
     def __str__(self):
         s = "BoltArray Keys\n"
@@ -99,7 +99,7 @@ class Keys(Shapes):
 class Values(Shapes):
     """
     This class implements all the base shape attributes and methods
-    for the values of a BoltArraySpark.
+    for the values of a BoltArray.
     """
     def __init__(self, barray):
         self._barray = barray
@@ -110,8 +110,8 @@ class Values(Shapes):
 
     def reshape(self, *shape):
         """
-        Reshape just the values of a BoltArraySpark, returning a
-        new BoltArraySpark.
+        Reshape just the values of a BoltArray, returning a
+        new BoltArray.
 
         Parameters
         ----------
@@ -131,12 +131,12 @@ class Values(Shapes):
         newrdd = self._barray._rdd.mapValues(f)
         newshape = self._barray.keys.shape + new
 
-        return BoltArraySpark(newrdd, shape=newshape).__finalize__(self._barray)
+        return BoltArray(newrdd, shape=newshape).__finalize__(self._barray)
 
     def transpose(self, *axes):
         """
-        Transpose just the values of a BoltArraySpark, returning a
-        new BoltArraySpark.
+        Transpose just the values of a BoltArray, returning a
+        new BoltArray.
 
         Parameters
         ----------
@@ -156,7 +156,7 @@ class Values(Shapes):
         newrdd = self._barray._rdd.mapValues(f)
         newshape = self._barray.keys.shape + tuple(self.shape[i] for i in new)
 
-        return BoltArraySpark(newrdd, shape=newshape).__finalize__(self._barray)
+        return BoltArray(newrdd, shape=newshape).__finalize__(self._barray)
 
     def __str__(self):
         s = "BoltArray Values\n"
