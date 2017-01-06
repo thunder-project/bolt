@@ -11,9 +11,10 @@ setup(
     author='The Freeman Lab',
     author_email='the.freeman.lab@gmail.com',
     url='https://github.com/bolt-project/bolt',
-    packages=['bolt',
-              'bolt.local',
-              'bolt.spark'],
+    packages=[
+        'bolt',
+        'bolt.array'
+    ],
     long_description=open('README.rst').read(),
     install_requires=open('requirements.txt').read().split()
 )
