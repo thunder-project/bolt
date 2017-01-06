@@ -1,9 +1,9 @@
 from numpy import asarray, ndarray, concatenate
-from bolt.spark.utils import zip_with_index
+from bolt.array.utils import zip_with_index
 
 class StackedArray(object):
     """
-    Wraps a BoltArraySpark and provides an interface for performing
+    Wraps a BoltArray and provides an interface for performing
     stacked operations (operations on aggregated subarrays). Many methods
     will be restricted or forbidden until the Stacked object is
     unstacked. Currently, only map() is implemented. The rationale
@@ -69,16 +69,16 @@ class StackedArray(object):
 
     def unstack(self):
         """
-        Unstack array and return a new BoltArraySpark via flatMap().
+        Unstack array and return a new BoltArray via flatMap().
         """
-        from bolt.spark.array import BoltArraySpark
+        from bolt.array.array import BoltArray
 
         if self._rekeyed:
             rdd = self._rdd
         else:
             rdd = self._rdd.flatMap(lambda kv: zip(kv[0], list(kv[1])))
 
-        return BoltArraySpark(rdd, shape=self.shape, split=self.split)
+        return BoltArray(rdd, shape=self.shape, split=self.split)
 
     def map(self, func):
         """
@@ -86,7 +86,7 @@ class StackedArray(object):
 
         Parameters
         ----------
-        func : function 
+        func : function
              This is applied to each value in the intermediate RDD.
 
         Returns

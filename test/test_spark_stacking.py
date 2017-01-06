@@ -2,7 +2,7 @@ import pytest
 from numpy import arange, repeat, asarray, vstack, tile
 from bolt import array, ones
 from bolt.utils import allclose
-from bolt.spark.array import BoltArraySpark
+from bolt.array.array import BoltArray
 
 
 def _2D_stackable_preamble(sc, num_partitions=2):
@@ -10,7 +10,7 @@ def _2D_stackable_preamble(sc, num_partitions=2):
     dims = (10, 10)
     arr = vstack([[x]*dims[1] for x in arange(dims[0])])
     barr = array(arr, sc, axis=0)
-    barr = BoltArraySpark(barr._rdd.partitionBy(num_partitions),
+    barr = BoltArray(barr._rdd.partitionBy(num_partitions),
                           shape=barr.shape, split=barr.split)
     return barr
 
@@ -20,7 +20,7 @@ def _3D_stackable_preamble(sc, num_partitions=2):
     area = dims[0] * dims[1]
     arr = asarray([repeat(x, area).reshape(dims[0], dims[1]) for x in range(dims[2])])
     barr = array(arr, sc, axis=0)
-    barr = BoltArraySpark(barr._rdd.partitionBy(num_partitions),
+    barr = BoltArray(barr._rdd.partitionBy(num_partitions),
                           shape=barr.shape, split=barr.split)
     return barr
 

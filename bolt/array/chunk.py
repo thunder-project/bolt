@@ -5,12 +5,12 @@ from numpy import zeros, ones, asarray, r_, concatenate, arange, ceil, prod, \
 from itertools import product
 
 from bolt.utils import tuplesort, tupleize, allstack, iterexpand
-from bolt.spark.array import BoltArraySpark
+from bolt.array.array import BoltArray
 
 
 class ChunkedArray(object):
     """
-    Wraps a BoltArraySpark and provides an interface for chunking
+    Wraps a BoltArray and provides an interface for chunking
     into subarrays and performing operations on chunks. Many methods will
     be restricted until the chunked array is unchunked.
 
@@ -196,7 +196,7 @@ class ChunkedArray(object):
         else:
             newshape = self.shape
 
-        return BoltArraySpark(rdd, shape=newshape, split=self._split,
+        return BoltArray(rdd, shape=newshape, split=self._split,
                               dtype=self.dtype, ordered=ordered)
 
     def keys_to_values(self, axes, size=None):
@@ -416,7 +416,7 @@ class ChunkedArray(object):
         """
         Apply a generic array -> object to each subarray
 
-        The resulting object is a BoltArraySpark of dtype object where the
+        The resulting object is a BoltArray of dtype object where the
         blocked dimensions are replaced with indices indication block ID.
         """
         def process_record(val):
@@ -429,7 +429,7 @@ class ChunkedArray(object):
         nchunks = self.getnumber(self.plan, self.vshape)
         newshape = tuple([int(s) for s in r_[self.kshape, nchunks]])
         newsplit = len(self.shape)
-        return BoltArraySpark(rdd, shape=newshape, split=newsplit, ordered=self._ordered, dtype="object")
+        return BoltArray(rdd, shape=newshape, split=newsplit, ordered=self._ordered, dtype="object")
 
     def getplan(self, size="150", axes=None, padding=None):
         """

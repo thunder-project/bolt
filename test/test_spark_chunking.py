@@ -1,5 +1,5 @@
 import pytest
-from numpy import arange, split, array_equal, empty, newaxis
+from numpy import arange, split, array_equal, empty, newaxis, asarray
 from bolt import array, ones
 from bolt.utils import allclose
 
@@ -97,14 +97,14 @@ def test_padding(sc):
 
     c = b.chunk((2, 2), padding=1)
     chunks = c.tordd().sortByKey().values().collect()
-    assert allclose(chunks[0], array([[0, 1, 2], [6, 7, 8], [12, 13, 14]]))
-    assert allclose(chunks[1], array([[1, 2, 3, 4], [7, 8, 9, 10], [13, 14, 15, 16]]))
-    assert allclose(chunks[4], array([[7, 8, 9, 10], [13, 14, 15, 16], [19, 20, 21, 22], [25, 26, 27, 28]]))
-    assert allclose(chunks[6], array([[18, 19, 20], [24, 25, 26]]))
+    assert allclose(chunks[0], asarray([[0, 1, 2], [6, 7, 8], [12, 13, 14]]))
+    assert allclose(chunks[1], asarray([[1, 2, 3, 4], [7, 8, 9, 10], [13, 14, 15, 16]]))
+    assert allclose(chunks[4], asarray([[7, 8, 9, 10], [13, 14, 15, 16], [19, 20, 21, 22], [25, 26, 27, 28]]))
+    assert allclose(chunks[6], asarray([[18, 19, 20], [24, 25, 26]]))
 
     c = b.chunk((3, 3), padding=(1, 2))
     chunks = c.tordd().sortByKey().values().collect()
-    assert allclose(chunks[0], array([[0, 1, 2, 3, 4], [6, 7, 8, 9, 10], [12, 13, 14, 15, 16], [18, 19, 20, 21, 22]]))
+    assert allclose(chunks[0], asarray([[0, 1, 2, 3, 4], [6, 7, 8, 9, 10], [12, 13, 14, 15, 16], [18, 19, 20, 21, 22]]))
 
     c = b.chunk((2,2), padding=1)
     assert allclose(x, c.unchunk().toarray())

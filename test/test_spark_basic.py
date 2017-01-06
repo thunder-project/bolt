@@ -68,9 +68,10 @@ def test_repartition(sc):
 def test_concatenate(sc):
 
     from numpy import concatenate
+    from numpy import array as npArray
     x = arange(2*3).reshape((2, 3))
     b = array(x, sc)
-    c = array(x)
+    c = npArray(x)
     assert allclose(b.concatenate(x).toarray(), concatenate((x, x)))
     assert allclose(b.concatenate(b).toarray(), concatenate((x, x)))
     assert allclose(b.concatenate(c).toarray(), concatenate((x, x)))
@@ -84,7 +85,7 @@ def test_dtype(sc):
     dtypes = b._rdd.map(lambda x: x[1].dtype).collect()
     for dt in dtypes:
         assert dt == dtype(int64)
-    
+
     a = arange(2.0**8)
     b = array(a, sc)
     assert a.dtype == b.dtype
@@ -123,9 +124,9 @@ def test_dtype(sc):
         assert dt == dtype(bool)
 
 def test_astype(sc):
-    
+
     from numpy import ones as npones
-    
+
     a = npones(2**8, dtype=int64)
     b = array(a, sc, dtype=int64)
     c = b.astype(bool)
@@ -133,7 +134,7 @@ def test_astype(sc):
     dtypes = c._rdd.map(lambda x: x[1].dtype).collect()
     for dt in dtypes:
         assert dt == dtype(bool)
-        
+
     b = ones((100, 100), sc, dtype=int64)
     c = b.astype(bool)
     assert c.dtype == dtype(bool)
