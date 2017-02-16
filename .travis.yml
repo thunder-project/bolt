@@ -1,0 +1,21 @@
+language: python
+
+python:
+  - "2.7"
+  - "3.4"
+
+jdk:
+  - openjdk7
+
+install:
+  # install bolt
+  - pip install .
+  - pip install -r requirements.txt
+  # install spark
+  - wget http://d3kbcqa49mib13.cloudfront.net/spark-1.4.0-bin-hadoop1.tgz
+  - tar -xzf spark-1.4.0-bin-hadoop1.tgz
+
+script:
+  - export _JAVA_OPTIONS="-Xms512m -Xmx4g"
+  - export SPARK_HOME=`pwd`/spark-1.4.0-bin-hadoop1
+  - py.test
