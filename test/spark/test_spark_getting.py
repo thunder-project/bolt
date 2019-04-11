@@ -77,6 +77,10 @@ def test_getitem_list(sc):
     assert allclose(b[[0, 1], [0, 2], [0, 3]].toarray(), x[[0, 1], [0, 2], [0, 3]])
     assert allclose(b[[0, 1, 2], [0, 2, 1], [0, 3, 1]].toarray(), x[[0, 1, 2], [0, 2, 1], [0, 3, 1]])
 
+    assert allclose(b[[1, 0], [0, 1], [0, 2]].toarray(), x[[1, 0], [0, 1], [0, 2]])
+    assert allclose(b[[1, 0], [0, 2], [0, 3]].toarray(), x[[1, 0], [0, 2], [0, 3]])
+    assert allclose(b[[1, 0, 2], [0, 2, 1], [0, 3, 1]].toarray(), x[[1, 0, 2], [0, 2, 1], [0, 3, 1]])
+
     b = array(x, sc, axis=(0,1))
     assert allclose(b[[0, 1], [0, 1], [0, 2]].toarray(), x[[0, 1], [0, 1], [0, 2]])
     assert allclose(b[[0, 1], [0, 2], [0, 3]].toarray(), x[[0, 1], [0, 2], [0, 3]])
@@ -102,6 +106,13 @@ def test_getitem_mixed(sc):
     b = array(x, sc, axis=(0, 1))
 
     i = [0, 1]
+    s = slice(1, 3)
+    assert allclose(b[i, :, :, :].toarray(), x[i, :, :, :])
+    assert allclose(b[i, s, s, s].toarray(), x[i, s, s, s])
+    assert allclose(b[:, :, i, :].toarray(), x[:, :, i, :])
+    assert allclose(b[s, s, i, s].toarray(), x[s, s, i, s])
+
+    i = [1, 0]
     s = slice(1, 3)
     assert allclose(b[i, :, :, :].toarray(), x[i, :, :, :])
     assert allclose(b[i, s, s, s].toarray(), x[i, s, s, s])
