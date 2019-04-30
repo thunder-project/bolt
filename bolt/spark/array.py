@@ -348,6 +348,21 @@ class BoltArraySpark(BoltArray):
         """
         return self._stat(axis, name='mean', keepdims=keepdims)
 
+    def nanmean(self, axis=None, keepdims=False):
+        """
+        Return the nanmean of the array over the given axis.
+
+        Parameters
+        ----------
+        axis : tuple or int, optional, default=None
+            Axis to compute statistic over, if None
+            will compute over all axes
+
+        keepdims : boolean, optional, default=False
+            Keep axis remaining after operation with size 1.
+        """
+        return self._stat(axis, name='nanmean', keepdims=keepdims)
+
     def var(self, axis=None, keepdims=False):
         """
         Return the variance of the array over the given axis.
@@ -361,7 +376,22 @@ class BoltArraySpark(BoltArray):
         keepdims : boolean, optional, default=False
             Keep axis remaining after operation with size 1.
         """
-        return self._stat(axis, name='variance', keepdims=keepdims)
+        return self._stat(axis, name='var', keepdims=keepdims)
+
+    def nanvar(self, axis=None, keepdims=False):
+        """
+        Return the variance of the array over the given axis ignoring NaNs.
+
+        Parameters
+        ----------
+        axis : tuple or int, optional, default=None
+            Axis to compute statistic over, if None
+            will compute over all axes
+
+        keepdims : boolean, optional, default=False
+            Keep axis remaining after operation with size 1.
+        """
+        return self._stat(axis, name='nanvar', keepdims=keepdims)
 
     def std(self, axis=None, keepdims=False):
         """
@@ -376,7 +406,22 @@ class BoltArraySpark(BoltArray):
         keepdims : boolean, optional, default=False
             Keep axis remaining after operation with size 1.
         """
-        return self._stat(axis, name='stdev', keepdims=keepdims)
+        return self._stat(axis, name='std', keepdims=keepdims)
+
+    def nanstd(self, axis=None, keepdims=False):
+        """
+        Return the standard deviation of the array over the given axis ignoring NaNs.
+
+        Parameters
+        ----------
+        axis : tuple or int, optional, default=None
+            Axis to compute statistic over, if None
+            will compute over all axes
+
+        keepdims : boolean, optional, default=False
+            Keep axis remaining after operation with size 1.
+        """
+        return self._stat(axis, name='nanstd', keepdims=keepdims)
 
     def sum(self, axis=None, keepdims=False):
         """
@@ -394,6 +439,21 @@ class BoltArraySpark(BoltArray):
         from operator import add
         return self._stat(axis, func=add, keepdims=keepdims)
 
+    def nansum(self, axis=None, keepdims=False):
+        """
+        Return the sum of the array over the given axis ignoring NaNs.
+
+        Parameters
+        ----------
+        axis : tuple or int, optional, default=None
+            Axis to compute statistic over, if None
+            will compute over all axes
+
+        keepdims : boolean, optional, default=False
+            Keep axis remaining after operation with size 1.
+        """
+        return self._stat(axis, name='nansum', keepdims=keepdims)
+
     def max(self, axis=None, keepdims=False):
         """
         Return the maximum of the array over the given axis.
@@ -410,6 +470,21 @@ class BoltArraySpark(BoltArray):
         from numpy import maximum
         return self._stat(axis, func=maximum, keepdims=keepdims)
 
+    def nanmax(self, axis=None, keepdims=False):
+        """
+        Return the maximum of the array over the given axis ignoring NaNs.
+
+        Parameters
+        ----------
+        axis : tuple or int, optional, default=None
+            Axis to compute statistic over, if None
+            will compute over all axes
+
+        keepdims : boolean, optional, default=False
+            Keep axis remaining after operation with size 1.
+        """
+        return self._stat(axis, name='nanmax', keepdims=keepdims)
+
     def min(self, axis=None, keepdims=False):
         """
         Return the minimum of the array over the given axis.
@@ -425,6 +500,21 @@ class BoltArraySpark(BoltArray):
         """
         from numpy import minimum
         return self._stat(axis, func=minimum, keepdims=keepdims)
+
+    def nanmin(self, axis=None, keepdims=False):
+        """
+        Return the minimum of the array over the given axis ignoring NaNs.
+
+        Parameters
+        ----------
+        axis : tuple or int, optional, default=None
+            Axis to compute statistic over, if None
+            will compute over all axes
+
+        keepdims : boolean, optional, default=False
+            Keep axis remaining after operation with size 1.
+        """
+        return self._stat(axis, name='nanmin', keepdims=keepdims)
 
     def concatenate(self, arry, axis=0):
         """
