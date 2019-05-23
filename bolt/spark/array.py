@@ -1,6 +1,7 @@
 from __future__ import print_function
 from numpy import asarray, unravel_index, prod, mod, ndarray, ceil, where, \
-    r_, sort, argsort, array, random, arange, ones, expand_dims, sum
+    r_, sort, argsort, array, random, arange, ones, expand_dims, sum, add, \
+    subtract, multiply, true_divide, isscalar
 from itertools import groupby
 
 from bolt.base import BoltArray
@@ -1025,3 +1026,85 @@ class BoltArraySpark(BoltArray):
         """
         for x in self._rdd.take(10):
             print(x)
+
+    def elementwise_binary(self, other, op):
+        """
+        Apply an elementwise binary operation between two arrays or an array and scalar.
+
+        Self and other must have the same shape, or other must be a scalar.
+
+        Parameters
+        ----------
+        other : scalar, ndarray, BoltArrayLocal, or BoltArraySpark
+            Value or array to perform a binary operation with element-wise
+
+        op : function
+            Binary operator to use for elementwise operations, e.g. add, subtract
+        
+        Returns
+        -------
+        BoltArraySpark
+        """
+        if not isscalar(other) and not self.shape == other.shape:
+            raise ValueError("Shapes %s and %s must be equal" % (self.shape, other.shape))
+
+        if isinstance(other, ndarray):
+            from bolt.spark.construct import ConstructSpark
+            other = ConstructSpark.array(other, self._rdd.context, axis=range(0, self.split))
+            
+        if isscalar(other):
+            return self.map(lambda x: op(x, other))
+            
+        elif isinstance(other, BoltArraySpark):
+            
+            def func(record):
+                (k1, x), (k2, y) = record
+                return k1, op(x, y)
+            
+            rdd = self.tordd().zip(other.tordd()).map(func)
+            return self._constructor(rdd).__finalize__(self)
+            
+        else:
+            raise ValueError("other must be ndarray, BoltArrayLocal, or BoltArraySpark. Got %s" % type(other))
+
+    def __add__(self, other):
+        """
+        Provides element-wise "+" functionality for BoltArraySpark.
+        """
+        return self.elementwise_binary(other, add)
+        
+    def __radd__(self, other):
+        """
+        Provides element-wise "+" functionality for BoltArraySpark if scalar provided first.
+        """
+        return self.elementwise_binary(other, add)
+
+    def __sub__(self, other):
+        """
+        Provides element-wise "-" functionality for BoltArraySpark.
+        """
+        return self.elementwise_binary(other, subtract)
+
+    def __mul__(self, other):
+        """
+        Provides element-wise "*" functionality for BoltArraySpark.
+        """
+        return self.elementwise_binary(other, multiply)
+        
+    def __rmul__(self, other):
+        """
+        Provides element-wise "*" functionality for BoltArraySpark if scalar provided first.
+        """
+        return self.elementwise_binary(other, multiply)
+
+    def __div__(self, other):
+        """
+        Provides element-wise "/" functionality for BoltArraySpark.
+        """
+        return self.elementwise_binary(other, true_divide)
+
+    def __truediv__(self, other):
+        """
+        Provides element-wise "/" functionality for BoltArraySpark for Python 3 or __future__ division.
+        """
+        return self.elementwise_binary(other, true_divide)
